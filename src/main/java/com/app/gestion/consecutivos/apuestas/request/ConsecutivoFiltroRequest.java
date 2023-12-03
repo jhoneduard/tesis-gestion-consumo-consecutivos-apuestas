@@ -2,6 +2,8 @@ package com.app.gestion.consecutivos.apuestas.request;
 
 import java.time.LocalDate;
 
+import com.app.gestion.consecutivos.apuestas.utils.LocalDateFormatDDMMYY;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +15,7 @@ import lombok.Setter;
 public class ConsecutivoFiltroRequest {
 	private String observacion;
 
+	@LocalDateFormatDDMMYY
 	private LocalDate fechaAsigna;
 
 	private String prefijo;

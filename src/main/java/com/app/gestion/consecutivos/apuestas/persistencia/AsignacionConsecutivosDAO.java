@@ -1,4 +1,4 @@
-package com.app.gestion.consecutivos.apuestas.service;
+package com.app.gestion.consecutivos.apuestas.persistencia;
 
 import com.app.gestion.consecutivos.apuestas.request.AsignacionManualConsecutivosRequest;
 import com.app.gestion.consecutivos.apuestas.request.FiltrarAsignacionConsecutivoRequest;
@@ -6,7 +6,7 @@ import com.app.gestion.consecutivos.apuestas.response.AsignacionConsecutivoRespo
 import com.app.gestion.consecutivos.apuestas.response.PaginadorResponse;
 import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 
-public interface AsignacionConsecutivosService {
+public interface AsignacionConsecutivosDAO {
 	StringResponse asignacionManual(AsignacionManualConsecutivosRequest request)
 			throws Exception;
 	

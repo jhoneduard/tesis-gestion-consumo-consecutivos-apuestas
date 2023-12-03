@@ -3,8 +3,7 @@ package com.app.gestion.consecutivos.apuestas.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.gestion.consecutivos.apuestas.exception.CodesaException;
-import com.app.gestion.consecutivos.apuestas.persistencia.ReasignacionConsecutivosRepository;
+import com.app.gestion.consecutivos.apuestas.persistencia.ReasignacionConsecutivosDAO;
 import com.app.gestion.consecutivos.apuestas.request.FiltrarConfiguracionesPRRequest;
 import com.app.gestion.consecutivos.apuestas.request.ReasignarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.request.TerminarPapeleriaRequest;
@@ -15,38 +14,34 @@ import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 @Service
 public class ReasignacionConsecutivosServiceImpl implements ReasignacionConsecutivosService {
 
+	@Autowired
+	private ReasignacionConsecutivosDAO reasignacionConsecutivosDAO;
 	
 	@Override
-	public StringResponse terminarPapeleria(TerminarPapeleriaRequest request) throws CodesaException {
+	public StringResponse terminarPapeleria(TerminarPapeleriaRequest request) throws Exception {
 		try {
-			return null;
-		} catch (CodesaException ex) {
-			throw ex;
+			return reasignacionConsecutivosDAO.terminarPapeleria(request);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 
 	@Override
-	public StringResponse reasignarConsecutivo(ReasignarConsecutivoRequest request) throws CodesaException {
+	public StringResponse reasignarConsecutivo(ReasignarConsecutivoRequest request) throws Exception {
 		try {
-			return null;
-		} catch (CodesaException ex) {
-			throw ex;
+			return reasignacionConsecutivosDAO.reasignarConsecutivo(request);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 
 	@Override
 	public PaginadorResponse<ConfiguracionesPendientePorReasignarResponse> listarConfigPendientePorReasignar(
-			FiltrarConfiguracionesPRRequest request) throws CodesaException {
+			FiltrarConfiguracionesPRRequest request) throws Exception {
 		try {
-			return null;
-		} catch (CodesaException ex) {
-			throw ex;
+			return reasignacionConsecutivosDAO.listarConfigPendientePorReasignar(request);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 

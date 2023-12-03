@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.app.gestion.consecutivos.apuestas.entity.ConsecutivoApuesta;
-import com.app.gestion.consecutivos.apuestas.exception.CodesaException;
 import com.app.gestion.consecutivos.apuestas.mapper.ConsecutivoApuestaMapper;
+import com.app.gestion.consecutivos.apuestas.persistencia.ConsecutivoApuestasDAO;
 import com.app.gestion.consecutivos.apuestas.request.ActualizarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.request.ConsecutivoFiltroRequest;
 import com.app.gestion.consecutivos.apuestas.request.GuardarConsecutivoRequest;
@@ -25,9 +26,13 @@ public class ConsecutivoApuestasServiceImpl implements ConsecutivoApuestasServic
 	@Autowired
 	private ConsecutivoApuestaMapper consecutivoApuestaMapper;
 
+	@Autowired
+	private ConsecutivoApuestasDAO consecutivoApuestasDAO;
+	
 	@Override
+	@Transactional(readOnly = true)
 	public ConsecutivoApuestaResponse filtrarAsignacionesConsecutivos(
-			ConsecutivoFiltroRequest request) throws CodesaException {
+			ConsecutivoFiltroRequest request) throws Exception {
 		try {
 			Pageable pageRequest = PageRequest.of(request.getPagina(),
 					request.getTotalRegistrosPorPagina());
@@ -38,7 +43,7 @@ public class ConsecutivoApuestasServiceImpl implements ConsecutivoApuestasServic
 			List<ConsecutivoApuestaResponse.ConsecutivoApuesta> contenido = consecutivoApuestaMapper.toListConsecutivoApuesta(listaConsecutivosApuestas);
 			
 			if (contenido.isEmpty()) {
-				throw new CodesaException("No hay consecutivos disponibles");
+				throw new Exception("No hay consecutivos disponibles");
 			}
 			
 			return ConsecutivoApuestaResponse
@@ -52,39 +57,38 @@ public class ConsecutivoApuestasServiceImpl implements ConsecutivoApuestasServic
 					.build();
 			
 			
-		} catch (CodesaException ex) {
-			throw ex;
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 
 	@Override
-	public StringResponse guardar(GuardarConsecutivoRequest request) throws CodesaException {
+	@Transactional
+	public StringResponse guardar(GuardarConsecutivoRequest request) throws Exception {
 		try {
-			ConsecutivoApuesta consecutivoApuestaNuevo = consecutivoApuestaMapper.toConsecutivoApuesta(request);
-			return StringResponse.builder().respuesta("Se ha guardado con exito la configuracion").build();
+			return consecutivoApuestasDAO.guardar(request);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 
 	@Override
-	public StringResponse actualizar(ActualizarConsecutivoRequest request) throws CodesaException {
+	@Transactional
+	public StringResponse actualizar(ActualizarConsecutivoRequest request) throws Exception {
 		try {
-			ConsecutivoApuesta consecutivoApuesta = consecutivoApuestaMapper.toConsecutivoApuesta(request);
-			return StringResponse.builder().respuesta("Se ha actualizado con exito la configuracion").build();
+			return consecutivoApuestasDAO.actualizar(request);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 
 	@Override
-	public StringResponse eliminar(Long configuracionId) throws CodesaException {
+	@Transactional
+	public StringResponse eliminar(Long configuracionId) throws Exception {
 		try {
-			return StringResponse.builder().respuesta("Consecutivo de apuestas eliminado con exito").build();
+			return consecutivoApuestasDAO.eliminar(configuracionId);
 		} catch (Exception ex) {
-			throw new CodesaException(ex.getMessage());
+			throw new Exception(ex.getMessage());
 		}
 	}
 

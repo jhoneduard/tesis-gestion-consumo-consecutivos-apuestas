@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.app.gestion.consecutivos.apuestas.exception.CodesaException;
 import com.app.gestion.consecutivos.apuestas.request.FiltrarConfiguracionesPRRequest;
 import com.app.gestion.consecutivos.apuestas.request.ReasignarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.request.TerminarPapeleriaRequest;
@@ -33,21 +32,21 @@ public class ReasignacionConsecutivosController {
 
 	@PostMapping(value = "/terminar-papeleria", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<StringResponse> terminarPapeleria(@RequestBody TerminarPapeleriaRequest request)
-			throws CodesaException {
+			throws Exception {
 		return new ResponseEntity<>(reasignacionConsecutivosService.terminarPapeleria(request),
 				HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/reasignar-consecutivo", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<StringResponse> reasignarConsecutivo(@RequestBody ReasignarConsecutivoRequest request)
-			throws CodesaException {
+			throws Exception {
 		return new ResponseEntity<>(reasignacionConsecutivosService.reasignarConsecutivo(request),
 				HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/listar-configuraciones-pendientes-por-reasignar", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PaginadorResponse<ConfiguracionesPendientePorReasignarResponse>> listarConfigPendientePorReasignar(
-			@RequestBody FiltrarConfiguracionesPRRequest request) throws CodesaException {
+			@RequestBody FiltrarConfiguracionesPRRequest request) throws Exception {
 		return new ResponseEntity<>(reasignacionConsecutivosService.listarConfigPendientePorReasignar(request),
 				HttpStatus.OK);
 	}

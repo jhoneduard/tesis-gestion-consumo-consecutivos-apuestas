@@ -1,4 +1,4 @@
-package com.app.gestion.consecutivos.apuestas.service;
+package com.app.gestion.consecutivos.apuestas.persistencia;
 
 import com.app.gestion.consecutivos.apuestas.request.FiltrarConfiguracionesPRRequest;
 import com.app.gestion.consecutivos.apuestas.request.ReasignarConsecutivoRequest;
@@ -7,7 +7,7 @@ import com.app.gestion.consecutivos.apuestas.response.ConfiguracionesPendientePo
 import com.app.gestion.consecutivos.apuestas.response.PaginadorResponse;
 import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 
-public interface ReasignacionConsecutivosService {
+public interface ReasignacionConsecutivosDAO {
 	StringResponse terminarPapeleria(TerminarPapeleriaRequest request)
 			throws Exception;
 	
