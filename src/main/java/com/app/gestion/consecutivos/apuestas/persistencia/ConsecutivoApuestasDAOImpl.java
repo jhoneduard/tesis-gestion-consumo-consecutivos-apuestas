@@ -1,11 +1,12 @@
 package com.app.gestion.consecutivos.apuestas.persistencia;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,6 +16,7 @@ import com.app.gestion.consecutivos.apuestas.request.ActualizarConsecutivoReques
 import com.app.gestion.consecutivos.apuestas.request.ConsecutivoFiltroRequest;
 import com.app.gestion.consecutivos.apuestas.request.GuardarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.response.ConsecutivoApuestaResponse;
+import com.app.gestion.consecutivos.apuestas.response.PaginadorResponse;
 import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 import com.app.gestion.consecutivos.apuestas.utils.BDUtils;
 import com.app.gestion.consecutivos.apuestas.utils.FechaUtils;
@@ -22,15 +24,28 @@ import com.app.gestion.consecutivos.apuestas.utils.FechaUtils;
 import jakarta.annotation.PostConstruct;
 import oracle.jdbc.OracleTypes;
 
-@SuppressWarnings("deprecation")
 @Repository
 public class ConsecutivoApuestasDAOImpl extends BDUtils implements ConsecutivoApuestasDAO {
 
-	@Autowired
-	private DataSource data;
-
 	@PostConstruct
 	public void init() {
+
+		/*
+		 * Procedimiento para el filtrar los consecutivos de apuestas
+		 */
+		llamarProcedimientoBD("PRO_FILTRAR_CONSECUTIVOS", "PRO_FILTRAR_CONSECUTIVOS", "PKG_ADM_CONSECUTIVOS");
+		getLllamadoBD("PRO_FILTRAR_CONSECUTIVOS")
+				.returningResultSet("PAR_RESULTADO_OUT", new ConsecutivoApuestaRowMapper())
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("PAR_OBSERVACION_IN", OracleTypes.VARCHAR),
+						new SqlParameter("PAR_FECHA_ASIGNA_IN", Types.DATE),
+						new SqlParameter("PAR_PREFIJO_IN", Types.VARCHAR),
+						new SqlParameter("PAR_CONSECUTIVO_INICIAL_IN", Types.VARCHAR),
+						new SqlParameter("PAR_CONSECUTIVO_FINAL_IN", Types.VARCHAR),
+						new SqlParameter("PAR_PAGINA_IN", OracleTypes.INTEGER),
+						new SqlParameter("PAR_TOTAL_REGISTROS_POR_PAGINA_IN", OracleTypes.INTEGER),
+						new SqlParameter("PAR_ESTADO_IN", OracleTypes.VARCHAR),
+						new SqlOutParameter("PAR_TOTAL_REGISTROS_OUT", Types.INTEGER));
 
 		/*
 		 * Procedimiento para la guardar la configuracion de consecutivos
@@ -67,11 +82,38 @@ public class ConsecutivoApuestasDAOImpl extends BDUtils implements ConsecutivoAp
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public ConsecutivoApuestaResponse filtrarAsignacionesConsecutivos(ConsecutivoFiltroRequest request)
-			throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public PaginadorResponse<ConsecutivoApuestaResponse> filtrarAsignacionesConsecutivos(
+			ConsecutivoFiltroRequest request) throws Exception {
+		PaginadorResponse<ConsecutivoApuestaResponse> paginador = new PaginadorResponse<ConsecutivoApuestaResponse>();
+		try {
+			Map<String, Object> resultado = ejecutarProcedimiento("PRO_FILTRAR_CONSECUTIVOS",
+					new MapSqlParameterSource("PAR_OBSERVACION_IN", request.getObservacion())
+							.addValue("PAR_FECHA_ASIGNA_IN",
+									FechaUtils.convertLocalDateToDate(request.getFechaAsigna()))
+							.addValue("PAR_PREFIJO_IN", request.getPrefijo())
+							.addValue("PAR_CONSECUTIVO_INICIAL_IN", request.getConsecutivoInicial())
+							.addValue("PAR_CONSECUTIVO_FINAL_IN", request.getConsecutivoFinal())
+							.addValue("PAR_PAGINA_IN", request.getPagina())
+							.addValue("PAR_TOTAL_REGISTROS_POR_PAGINA_IN", request.getTotalRegistrosPorPagina())
+							.addValue("PAR_ESTADO_IN", request.getEstado()));
+
+			List<ConsecutivoApuestaResponse> registros = (List<ConsecutivoApuestaResponse>) resultado
+					.get("PAR_RESULTADO_OUT");
+
+			if (registros.isEmpty()) {
+				throw new Exception("No se encuentra registros para los filtros suministrados");
+			}
+
+			Integer totalRegistros = (Integer) resultado.get("PAR_TOTAL_REGISTROS_OUT");
+			paginador.setListado(registros);
+			paginador.setPagina(request.getPagina());
+			paginador.setTotalRegistros(totalRegistros);
+			return paginador;
+		} catch (Exception ex) {
+			throw new Exception(ex.getMessage());
+		}
 	}
 
 	@Override
@@ -129,5 +171,19 @@ public class ConsecutivoApuestasDAOImpl extends BDUtils implements ConsecutivoAp
 			throw new Exception(ex.getMessage());
 		}
 		return response;
+	}
+
+	class ConsecutivoApuestaRowMapper implements RowMapper<ConsecutivoApuestaResponse> {
+		@Override
+		public ConsecutivoApuestaResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return ConsecutivoApuestaResponse.builder().configuracionId(rs.getLong("CONFIGURACION_ID"))
+					.observacion(rs.getString("OBSERVACION")).fechaAsigna(rs.getDate("FECHA_ASIGNA").toLocalDate())
+					.prefijo(rs.getString("PREFIJO")).consecutivoInicial(rs.getString("CONSECUTIVO_INICIAL"))
+					.consecutivoFinal(rs.getString("CONSECUTIVO_FINAL"))
+					.consecutivoActual(rs.getString("CONSECUTIVO_ACTUAL"))
+					.cantidadDisponible(rs.getInt("CANTIDAD_DISPONIBLE")).estado(rs.getString("ESTADO"))
+					.cantidad(rs.getInt("CANTIDAD")).build();
+		}
+
 	}
 }

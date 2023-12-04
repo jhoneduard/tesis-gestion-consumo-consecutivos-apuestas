@@ -1,8 +1,12 @@
 package com.app.gestion.consecutivos.apuestas.persistencia;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -19,7 +23,6 @@ import com.app.gestion.consecutivos.apuestas.utils.BDUtils;
 import jakarta.annotation.PostConstruct;
 import oracle.jdbc.OracleTypes;
 
-@SuppressWarnings("deprecation")
 @Repository
 public class ReasignacionConsecutivosDAOImpl extends BDUtils implements ReasignacionConsecutivosDAO {
 
@@ -42,6 +45,16 @@ public class ReasignacionConsecutivosDAOImpl extends BDUtils implements Reasigna
 				new SqlParameter("PAR_CONFIGURACION_ID_IN", OracleTypes.NUMERIC),
 				new SqlOutParameter("PAR_MENSAJE_SALIDA_OUT", Types.VARCHAR));
 
+		/*
+		 * Procedimiento para el filtrar los consecutivos pendiente pór reasignar
+		 */
+		llamarProcedimientoBD("PRO_FILTRAR_CONSECUTIVOS_PR", "PRO_FILTRAR_CONSECUTIVOS_PR", "PKG_ADM_CONSECUTIVOS");
+		getLllamadoBD("PRO_FILTRAR_CONSECUTIVOS_PR")
+				.returningResultSet("PAR_RESULTADO_OUT", new ConsecutivosPendientePorReasignarRowMapper())
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("PAR_PAGINA_IN", OracleTypes.INTEGER),
+						new SqlParameter("PAR_TOTAL_REGISTROS_POR_PAGINA_IN", OracleTypes.INTEGER),
+						new SqlOutParameter("PAR_TOTAL_REGISTROS_OUT", Types.INTEGER));
 	}
 
 	@Override
@@ -74,11 +87,46 @@ public class ReasignacionConsecutivosDAOImpl extends BDUtils implements Reasigna
 		return response;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public PaginadorResponse<ConfiguracionesPendientePorReasignarResponse> listarConfigPendientePorReasignar(
 			FiltrarConfiguracionesPRRequest request) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		PaginadorResponse<ConfiguracionesPendientePorReasignarResponse> paginador = new PaginadorResponse<ConfiguracionesPendientePorReasignarResponse>();
+		try {
+			Map<String, Object> resultado = ejecutarProcedimiento("PRO_FILTRAR_CONSECUTIVOS_PR",
+					new MapSqlParameterSource("PAR_PAGINA_IN", request.getPagina())
+							.addValue("PAR_TOTAL_REGISTROS_POR_PAGINA_IN", request.getTotalRegistrosPorPagina()));
+
+			List<ConfiguracionesPendientePorReasignarResponse> registros = (List<ConfiguracionesPendientePorReasignarResponse>) resultado
+					.get("PAR_RESULTADO_OUT");
+
+			if (registros.isEmpty()) {
+				throw new Exception("No se encuentra registros para los filtros suministrados");
+			}
+
+			Integer totalRegistros = (Integer) resultado.get("PAR_TOTAL_REGISTROS_OUT");
+			paginador.setListado(registros);
+			paginador.setPagina(request.getPagina());
+			paginador.setTotalRegistros(totalRegistros);
+			return paginador;
+		} catch (Exception ex) {
+			throw new Exception(ex.getMessage());
+		}
 	}
 
+	class ConsecutivosPendientePorReasignarRowMapper
+			implements RowMapper<ConfiguracionesPendientePorReasignarResponse> {
+
+		@Override
+		public ConfiguracionesPendientePorReasignarResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return ConfiguracionesPendientePorReasignarResponse.builder()
+					.configuracionId(rs.getLong("CONFIGURACION_ID")).prefijo(rs.getString("PREFIJO"))
+					.consecutivoInicial(rs.getString("CONSECUTIVO_INICIAL"))
+					.consecutivoFinal(rs.getString("CONSECUTIVO_FINAL"))
+					.consecutivoActual(rs.getString("CONSECUTIVO_ACTUAL")).estado(rs.getString("ESTADO"))
+					.cedulaVendedor(rs.getLong("CEDULA_VENDEDOR")).oficinaId(rs.getLong("OFICINA_ID"))
+					.nombreOficina(rs.getString("NOMBRE_OFICINA")).zonaId(rs.getLong("ZONA_ID"))
+					.nombreZona(rs.getString("NOMBRE_ZONA")).build();
+		}
+	}
 }

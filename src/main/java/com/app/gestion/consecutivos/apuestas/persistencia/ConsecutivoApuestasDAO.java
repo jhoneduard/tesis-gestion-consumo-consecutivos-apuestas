@@ -4,10 +4,11 @@ import com.app.gestion.consecutivos.apuestas.request.ActualizarConsecutivoReques
 import com.app.gestion.consecutivos.apuestas.request.ConsecutivoFiltroRequest;
 import com.app.gestion.consecutivos.apuestas.request.GuardarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.response.ConsecutivoApuestaResponse;
+import com.app.gestion.consecutivos.apuestas.response.PaginadorResponse;
 import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 
 public interface ConsecutivoApuestasDAO {
-	ConsecutivoApuestaResponse filtrarAsignacionesConsecutivos(
+	PaginadorResponse<ConsecutivoApuestaResponse> filtrarAsignacionesConsecutivos(
 			ConsecutivoFiltroRequest request) throws Exception;
 	
 	StringResponse guardar(GuardarConsecutivoRequest request)

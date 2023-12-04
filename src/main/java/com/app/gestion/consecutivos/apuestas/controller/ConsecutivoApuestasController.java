@@ -16,6 +16,7 @@ import com.app.gestion.consecutivos.apuestas.request.ActualizarConsecutivoReques
 import com.app.gestion.consecutivos.apuestas.request.ConsecutivoFiltroRequest;
 import com.app.gestion.consecutivos.apuestas.request.GuardarConsecutivoRequest;
 import com.app.gestion.consecutivos.apuestas.response.ConsecutivoApuestaResponse;
+import com.app.gestion.consecutivos.apuestas.response.PaginadorResponse;
 import com.app.gestion.consecutivos.apuestas.response.StringResponse;
 import com.app.gestion.consecutivos.apuestas.service.ConsecutivoApuestasService;
 
@@ -26,8 +27,9 @@ public class ConsecutivoApuestasController {
 	@Autowired
 	private ConsecutivoApuestasService consecutivoApuestasService;
 	
-	@PostMapping(value = "/listar", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ConsecutivoApuestaResponse> filtrarAsignacionesConsecutivos(
+	@PostMapping(value = "/listar", consumes = MediaType.APPLICATION_JSON_VALUE, 
+		produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<PaginadorResponse<ConsecutivoApuestaResponse>> filtrarAsignacionesConsecutivos(
 			@RequestBody ConsecutivoFiltroRequest request) throws Exception {
 		return new ResponseEntity<>(consecutivoApuestasService.filtrarAsignacionesConsecutivos(request),
 				HttpStatus.OK);
